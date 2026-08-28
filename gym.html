@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Tracker - Focus Machines 40 Min</title>
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --card-bg: #18181b;
+            --accent-green: #84cc16; /* Vert fitness */
+            --accent-green-dim: rgba(132, 204, 22, 0.2);
+            --text-main: #f8fafc;
+            --text-sub: #a1a1aa;
+            --border-color: #27272a;
+            
+            /* Couleurs musculaires */
+            --muscle-chest: #38bdf8;
+            --muscle-back: #a855f7;
+            --muscle-legs: #f97316;
+            --muscle-core: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 15px;
+            max-width: 600px; /* Format téléphone priorisé */
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 10px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .date-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .date-btn {
+            background: transparent;
+            color: var(--text-sub);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        input[type="date"] {
+            background: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        /* Barre de progression */
+        .progress-container {
+            margin-top: 15px;
+            background: var(--bg-color);
+            height: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-green);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 5px;
+        }
+
+        /* Cartes d'exercices */
+        .workout-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .exercise-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .exercise-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .exercise-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            background: var(--bg-color);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .muscle-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-chest { background: rgba(56, 189, 248, 0.2); color: var(--muscle-chest); border: 1px solid var(--muscle-chest); }
+        .badge-back { background: rgba(168, 85, 247, 0.2); color: var(--muscle-back); border: 1px solid var(--muscle-back); }
+        .badge-legs { background: rgba(249, 115, 22, 0.2); color: var(--muscle-legs); border: 1px solid var(--muscle-legs); }
+        .badge-core { background: rgba(239, 68, 68, 0.2); color: var(--muscle-core); border: 1px solid var(--muscle-core); }
+        .badge-cardio { background: rgba(161, 161, 170, 0.2); color: #e4e4e7; border: 1px solid #e4e4e7; }
+
+        .exercise-body {
+            padding: 15px;
+        }
+
+        .exercise-note {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .sets-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .set-btn {
+            flex: 1;
+            min-width: 60px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px 5px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            user-select: none;
+        }
+
+        .set-btn.completed {
+            background: var(--accent-green-dim);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* Section Repos */
+        .rest-day {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px dashed var(--border-color);
+            color: var(--text-sub);
+        }
+
+        /* Contrôles Data */
+        .data-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .action-btn:hover {
+            background: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>⚡ Gym Tracker</h1>
+        <p style="font-size: 0.9rem; color: var(--text-sub);">Volume minimal efficace • Focus Maintien</p>
+        
+        <div class="date-selector">
+            <button class="date-btn" onclick="changeDate(-1)">❮</button>
+            <input type="date" id="workoutDate" onchange="loadWorkout()">
+            <button class="date-btn" onclick="changeDate(1)">❯</button>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText">0 / 0 Séries complétées</div>
+    </header>
+
+    <div id="workoutTitle" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: var(--text-main);">
+        </div>
+
+    <div class="workout-list" id="workoutContainer">
+        </div>
+
+    <div class="data-controls">
+        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+        <button class="action-btn" onclick="document.getElementById('importFile').click()">📥 Importer JSON</button>
+        <button class="action-btn" onclick="exportData()">📤 Exporter JSON</button>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "gym_tracker_data_v1";
+        let appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+
+        // Base de données du programme
+        const program = {
+            1: { // Lundi
+                name: "Haut du Corps - Poussée",
+                exercises: [
+                    { id: "e1", title: "Chest Press (Assis)", muscle: "Pectoraux / Triceps", badge: "badge-chest", icon: "🦍", note: "Règle le siège : poignées au niveau de la poitrine. 10 reps.", sets: 3 },
+                    { id: "e2", title: "Shoulder Press (Épaules)", muscle: "Épaules", badge: "badge-chest", icon: "🏋️‍♂️", note: "Contrôle la descente, ne verrouille pas les coudes en haut. 10 reps.", sets: 3 },
+                    { id: "e3", title: "Extension Triceps Poulie", muscle: "Triceps", badge: "badge-chest", icon: "💪", note: "Avec corde. Garde les coudes collés au corps. 12 reps.", sets: 3 }
+                ]
+            },
+            2: { // Mardi
+                name: "Haut du Corps - Tirage",
+                exercises: [
+                    { id: "e4", title: "Lat Pulldown (Poitrine)", muscle: "Dos", badge: "badge-back", icon: "🦇", note: "Buste droit, tire avec les coudes vers le bas. 10 reps.", sets: 3 },
+                    { id: "e5", title: "Tirage Horizontal (Machine)", muscle: "Dos", badge: "badge-back", icon: "🚣‍♂️", note: "Resserre bien les omoplates à la fin du mouvement. 10 reps.", sets: 3 },
+                    { id: "e6", title: "Curl Biceps Machine", muscle: "Biceps", badge: "badge-back", icon: "🦾", note: "Mouvement fluide. 12 reps.", sets: 3 }
+                ]
+            },
+            3: { // Mercredi
+                name: "Bas du Corps - Jambes",
+                exercises: [
+                    { id: "e7", title: "Presse à Cuisses", muscle: "Quadriceps / Fessiers", badge: "badge-legs", icon: "🦵", note: "Ne tends jamais complètement les genoux en haut. 10 reps.", sets: 3 },
+                    { id: "e8", title: "Leg Curl (Arrière cuisse)", muscle: "Ischio-jambiers", badge: "badge-legs", icon: "🦿", note: "Maintient la contraction 1 seconde en bas. 12 reps.", sets: 3 },
+                    { id: "e9", title: "Leg Extension", muscle: "Quadriceps", badge: "badge-legs", icon: "🦵", note: "Contrôle bien la descente du poids. 12 reps.", sets: 3 }
+                ]
+            },
+            4: { // Jeudi
+                name: "Sangle Abdominale & Cardio",
+                exercises: [
+                    { id: "e10", title: "Machine à Crunch", muscle: "Abdominaux", badge: "badge-core", icon: "🛡️", note: "Concentre-toi sur la contraction, ne tire pas avec les bras. 15 reps.", sets: 3 },
+                    { id: "e11", title: "Gainage Planche", muscle: "Core", badge: "badge-core", icon: "🪵", note: "Maintiens le dos droit et respire bien. 45 secondes.", sets: 3 },
+                    { id: "e12", title: "Vélo Elliptique", muscle: "Cardio", badge: "badge-cardio", icon: "🫁", note: "Rythme modéré, récupération active. 15 Minutes.", sets: 1 } // 1 set = la session de 15min
+                ]
+            },
+            5: { // Vendredi
+                name: "Full Body Léger",
+                exercises: [
+                    { id: "e13", title: "Presse à Cuisses", muscle: "Jambes", badge: "badge-legs", icon: "🦵", note: "Mouvement fluide, ne force pas. 10 reps.", sets: 2 },
+                    { id: "e14", title: "Lat Pulldown", muscle: "Dos", badge: "badge-back", icon: "🦇", note: "Réveille le dos. 10 reps.", sets: 2 },
+                    { id: "e15", title: "Chest Press", muscle: "Pectoraux", badge: "badge-chest", icon: "🦍", note: "Pour finir en douceur. 10 reps.", sets: 2 }
+                ]
+            }
+        };
+
+        window.onload = function() {
+            // Met la date du jour par défaut
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById("workoutDate").value = todayStr;
+            loadWorkout();
+        };
+
+        function getDayKey() {
+            return document.getElementById("workoutDate").value;
+        }
+
+        function loadWorkout() {
+            const dateStr = getDayKey();
+            const dateObj = new Date(dateStr);
+            const dayOfWeek = dateObj.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
+            
+            const container = document.getElementById("workoutContainer");
+            const titleElement = document.getElementById("workoutTitle");
+            
+            // Formatage de la date en texte
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            const dateText = dateObj.toLocaleDateString('fr-FR', options);
+            
+            // Si c'est le week-end (Samedi = 6, Dimanche = 0)
+            if (dayOfWeek === 6 || dayOfWeek === 0) {
+                titleElement.innerHTML = `<span style="text-transform: capitalize;">${dateText}</span> : 🛋️ Repos`;
+                container.innerHTML = `
+                    <div class="rest-day">
+                        <h2>Jour de Repos</h2>
+                        <p style="margin-top: 10px;">Laisse ton système nerveux et tes muscles récupérer. Idéal pour une randonnée ou de la déconnexion.</p>
+                    </div>
+                `;
+                updateProgress(0, 0);
+                return;
+            }
+
+            // Récupérer le programme du jour
+            const dayProgram = program[dayOfWeek];
+            titleElement.innerHTML = `<span style="text-transform: capitalize;">${dateText}</span> : ${dayProgram.name}`;
+            
+            // Initialiser les données de ce jour si vides
+            if (!appData[dateStr]) {
+                appData[dateStr] = {};
+            }
+
+            container.innerHTML = "";
+            let totalSets = 0;
+            let completedSets = 0;
+
+            dayProgram.exercises.forEach(ex => {
+                // Création de l'état des séries si non existant
+                if (!appData[dateStr][ex.id]) {
+                    appData[dateStr][ex.id] = new Array(ex.sets).fill(false);
+                }
+
+                totalSets += ex.sets;
+                const setsState = appData[dateStr][ex.id];
+                completedSets += setsState.filter(Boolean).length;
+
+                // Génération des boutons de séries
+                let setsHTML = '';
+                for (let i = 0; i < ex.sets; i++) {
+                    const isDone = setsState[i];
+                    setsHTML += `<div class="set-btn ${isDone ? 'completed' : ''}" onclick="toggleSet('${dateStr}', '${ex.id}', ${i})">
+                        Série ${i + 1}
+                    </div>`;
+                }
+
+                // Construction de la carte d'exercice
+                const card = document.createElement("div");
+                card.className = "exercise-card";
+                card.innerHTML = `
+                    <div class="exercise-header">
+                        <div class="exercise-icon">${ex.icon}</div>
+                        <div class="exercise-info">
+                            <div class="exercise-title">${ex.title}</div>
+                            <span class="muscle-badge ${ex.badge}">${ex.muscle}</span>
+                        </div>
+                    </div>
+                    <div class="exercise-body">
+                        <div class="exercise-note">💡 ${ex.note}</div>
+                        <div class="sets-container">
+                            ${setsHTML}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updateProgress(completedSets, totalSets);
+        }
+
+        function toggleSet(dateStr, exerciseId, setIndex) {
+            appData[dateStr][exerciseId][setIndex] = !appData[dateStr][exerciseId][setIndex];
+            saveToStorage();
+            loadWorkout(); // Recharge l'interface pour mettre à jour les couleurs et la barre
+        }
+
+        function updateProgress(completed, total) {
+            const bar = document.getElementById("progressBar");
+            const text = document.getElementById("progressText");
+            
+            if (total === 0) {
+                bar.style.width = "0%";
+                text.innerText = "Aucun entraînement prévu";
+                return;
+            }
+
+            const percentage = Math.round((completed / total) * 100);
+            bar.style.width = `${percentage}%`;
+            text.innerText = `${completed} / ${total} Séries complétées (${percentage}%)`;
+            
+            if (percentage === 100) {
+                text.innerText += " 🎉 Entraînement terminé !";
+                text.style.color = "var(--accent-green)";
+            } else {
+                text.style.color = "var(--text-sub)";
+            }
+        }
+
+        function changeDate(days) {
+            const dateInput = document.getElementById("workoutDate");
+            const date = new Date(dateInput.value);
+            date.setDate(date.getDate() + days);
+            dateInput.value = date.toISOString().split('T')[0];
+            loadWorkout();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        }
+
+        // --- Import / Export JSON ---
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `gym_tracker_40min.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (typeof importedData === 'object' && importedData !== null) {
+                        appData = importedData;
+                        saveToStorage(); 
+                        loadWorkout();   
+                        alert("✅ Historique de musculation importé avec succès !");
+                    }
+                } catch (error) {
+                    alert("❌ Erreur. Vérifie qu'il s'agit bien d'un fichier .json valide.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
